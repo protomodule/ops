@@ -11,7 +11,7 @@ not required
 ### CLI
 
 ```
-$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/helpers/generate-version.sh)" -j version
+$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -j version
 ```
 
 ## License

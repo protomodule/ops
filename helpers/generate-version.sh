@@ -2,7 +2,20 @@
 
 # Globals
 HL='\033[0;34m\033[1m' # Highlight
+WA='\033[0;33m\033[1m' # Warning
 NC='\033[0m' # No Color
+
+command -v git >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}git CLI is not installed.$NC";
+  exit 1
+}
+
+if [ ! -d ".git" ]; then
+  echo -e "💥  ${WA}This is not a git repository.$NC Please run inside root directory of a repository."
+  exit 1
+fi
+
+# Variables
 OUTPUT_INI=
 OUTPUT_JSON=
 OUTPUT_SH=
@@ -67,7 +80,7 @@ main () {
     exit 0
   fi
 
-  echo "👷‍♂️  Generating build stats"
+  echo "👷‍♂️  Generating build information"
   echo ""
   echo -e "Current version:                  $HL$VERSION$NC"
   echo -e "Commit is ahead of version tag:   $HL$AHEAD$NC"
