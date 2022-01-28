@@ -23,6 +23,7 @@ AHEAD=`git rev-list "$(git describe --tags --abbrev=0 2> /dev/null)"..HEAD --cou
 AHEAD=${AHEAD:-"no version found"}
 COMMIT=`git rev-parse --verify HEAD`
 SHORT=`git rev-parse --short HEAD`
+TIMESTAMP=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
 # Force branch name to be lowercase (convert / to -) and only allow numbers, characters and "-". Everything else is stripped.
 REMOTE_BRANCH=`git branch --remote --verbose --no-abbrev --contains | sed -rne 's/^[^\/]*\/([^\ ]+).*$/\1/p' | tail -1`
@@ -89,6 +90,7 @@ main () {
   echo -e "Build originates from branch:     $HL$BRANCH$NC"
   echo -e "Docker image version tag:         $HL$TAG$NC"
   echo -e "Latest tag:                       $HL$LATEST_TAG$NC"
+  echo -e "Build timestamp:                  $HL$TIMESTAMP$NC"
   echo ""
 
   if [ "$OUTPUT_INI" ]; then
@@ -102,12 +104,13 @@ main () {
     echo "BRANCH = $BRANCH" >> $FILENAME
     echo "DOCKER_TAG = $TAG" >> $FILENAME
     echo "LATEST_TAG = $LATEST_TAG" >> $FILENAME
+    echo "TIMESTAMP = $TIMESTAMP" >> $FILENAME
   fi
 
   if [ "$OUTPUT_JSON" ]; then
     FILENAME="${@: -1}.json"
     echo "🐟  Writing <$FILENAME> as JSON"
-    echo "{\"version\":\"$VERSION\",\"ahead\":\"$AHEAD\",\"commit\":\"$COMMIT\",\"short\":\"$SHORT\",\"branch\":\"$BRANCH\",\"docker_tag\":\"$TAG\",\"latest_tag\":\"$LATEST_TAG\"}" > $FILENAME
+    echo "{\"version\":\"$VERSION\",\"ahead\":\"$AHEAD\",\"commit\":\"$COMMIT\",\"short\":\"$SHORT\",\"branch\":\"$BRANCH\",\"docker_tag\":\"$TAG\",\"latest_tag\":\"$LATEST_TAG\",\"timestamp\":\"$TIMESTAMP\"}" > $FILENAME
   fi
 
   if [ "$OUTPUT_SH" ]; then
@@ -121,6 +124,7 @@ main () {
     echo "export BRANCH=\"$BRANCH\"" >> $FILENAME
     echo "export DOCKER_TAG=\"$TAG\"" >> $FILENAME
     echo "export LATEST_TAG=\"$LATEST_TAG\"" >> $FILENAME
+    echo "export TIMESTAMP=\"$TIMESTAMP\"" >> $FILENAME
     chmod ugo+x $FILENAME
   fi
 }
