@@ -12,7 +12,7 @@ NGINX_TEMPLATE=${NGINX_TEMPLATE:-/etc/nginx/conf.d/default.conf.template}
 if [ "$FORCE_SSL" = "yes" ]; then
   echo "🔐  Force SSL (Redirect & HSTS)"
   NGINX_TEMPLATE=/etc/nginx/conf.d/forcessl.conf.template
-else
+fi
 
 # Check $PORT or set fallback -> to be substituted in nginx config
 if [ -z "$PORT" ]; then
@@ -40,7 +40,6 @@ fi
 ## to output file in JS notation (env.js) assigning all varibles into 'window.env'.
 ## Inlcude <script src="env.js"></script> into your index.html to load variables.
 if [ "$NGINX_ENVJS_ENABLED" = "yes" ]; then
-then
   NGINX_ENVJS_FILE=${NGINX_ENVJS_FILE:-./env.js}
   NGINX_ENVJS_PREFIX=${NGINX_ENVJS_PREFIX:-REACT_APP_}
   NGINX_ENVJS_TARGET=${NGINX_ENVJS_TARGET:-"window.env"}
