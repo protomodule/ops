@@ -47,6 +47,7 @@ LATEST_TAG=${LATEST_TAG//[!a-z0-9\-\.]}
 TAG=$VERSION
 if [[ ( "$AHEAD" != "0" ) || ( "$VERSION" == "$BRANCH" ) ]]; then
   TAG=
+  VERSION="$VERSION-$SHORT"
 fi
 export TAG=$TAG
 
@@ -81,7 +82,7 @@ main () {
     exit 0
   fi
 
-  echo "👷‍♂️  Generating build information"
+  echo "🚧  Generating build information"
   echo ""
   echo -e "Current version:                  $HL$VERSION$NC"
   echo -e "Commit is ahead of version tag:   $HL$AHEAD$NC"
