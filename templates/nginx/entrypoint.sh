@@ -41,7 +41,7 @@ fi
 ## Inlcude <script src="env.js"></script> into your index.html to load variables.
 if [ "$NGINX_ENVJS_ENABLED" = "yes" ]; then
 then
-  NGINX_ENVJS_FILE=${NGINX_TEMPLATE:-./env.js}
+  NGINX_ENVJS_FILE=${NGINX_ENVJS_FILE:-./env.js}
   NGINX_ENVJS_PREFIX=${NGINX_ENVJS_PREFIX:-REACT_APP_}
   NGINX_ENVJS_TARGET=${NGINX_ENVJS_TARGET:-"window.env"}
 
