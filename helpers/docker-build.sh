@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Globals
 HL='\033[0;34m\033[1m' # Highlight
@@ -28,7 +29,7 @@ main () {
     exit 1
   fi
 
-  echo "ℹ️  Preparing repository"
+  echo "ℹ️   Preparing repository"
   git fetch
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -- -j -s version
   source version.sh
