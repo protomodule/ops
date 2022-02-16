@@ -15,9 +15,9 @@ fi
 OUTPUT_HTML=
 OUTPUT_MD=
 SHORT=`git rev-parse --short HEAD`
-COMMIT_URL="https://gitlab.com/denovo/$(basename $(pwd))/-/commit/"
+REPO_NAME=$(basename `git config --get remote.origin.url` .git)
+COMMIT_URL="https://gitlab.com/denovo/${REPO_NAME}/-/commit/"
 NUM_VERSIONS=30
-REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
 
 # Help
 usage () {
