@@ -73,7 +73,6 @@ while getopts "hijs" flag; do
         *) usage; exit 1;;
     esac
 done
-shift $((OPTIND -1))
 
 main () {
   # Checks
