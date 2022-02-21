@@ -88,10 +88,10 @@ generateMarkdown() {
         FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
         FIRST_TAG=$(git tag --sort=creatordate | head -n 1)
         FIRST_DATE=$(git log -1 --pretty=format:'%ad' --date=short ${FIRST_TAG})
-        printf "## $FIRST_TAG\n\n"
+        printf "## ${FIRST_TAG:-Initial project setup}\n\n"
         printf "**${FIRST_DATE}**\n\n"
+        git log ${FIRST_COMMIT}...${FIRST_TAG:-HEAD} --pretty=format:"*  **%an** %s [%h](${COMMIT_URL}%H)" | grep -v Merge
         git log ${FIRST_COMMIT} --pretty=format:"*  **%an** %s [%h](${COMMIT_URL}%H)" | grep -v Merge
-        git log ${FIRST_COMMIT}...${FIRST_TAG} --pretty=format:"*  **%an** %s [%h](${COMMIT_URL}%H)" | grep -v Merge
         printf "\n\n"
     fi
 }
