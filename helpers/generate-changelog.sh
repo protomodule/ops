@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # Globals
 HL='\033[0;34m\033[1m' # Highlight
@@ -116,11 +117,14 @@ main () {
 
         TEMP_DIR="./tmp-$TEMP_DIR"
         mkdir "$TEMP_DIR"
+        echo "🌍  Downloading styles"
         curl -s -o "$TEMP_DIR/basic.min.css" https://raw.githubusercontent.com/protomodule/ops/main/templates/changelog/basic.min.css
+        echo "📝  Writing temporary Markdown"
         echo "$MARKDOWN" > "$TEMP_DIR/changelog.md"
+        echo "🔮  Converting Markdown to HTML"
         npx -y markdown-html "$TEMP_DIR/changelog.md" -o changelog.html -s "$TEMP_DIR/basic.min.css" -t "Changelog: $REPO_NAME"
 
-        echo "🗑  Cleaning up"
+        echo "🗑   Cleaning up"
         rm -rf "$TEMP_DIR"
     fi
 
