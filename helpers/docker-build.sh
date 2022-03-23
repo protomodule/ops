@@ -7,6 +7,16 @@ NC='\033[0m' # No Color
 REPOSITORY=${@: -1}
 DOCKER_FILE=Dockerfile
 
+command -v git >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}git is not installed.$NC";
+  exit 1
+}
+
+command -v docker >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}Docker is not installed.$NC";
+  exit 1
+}
+
 # Help
 usage () {
     echo "usage: ./docker-build.sh <REPOSITORY>" >&2

@@ -10,6 +10,21 @@ HEROKU_APP_NAME=
 HEROKU_DYNO=web
 DOCKER_IMAGE=
 
+command -v git >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}git is not installed.$NC";
+  exit 1
+}
+
+command -v docker >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}Docker is not installed.$NC";
+  exit 1
+}
+
+command -v heroku >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}Heroku CLI is not installed.$NC";
+  exit 1
+}
+
 # Help
 usage () {
     echo "usage: ./docker-heroku.sh -k <HEROKU_API_KEY> -a <HEROKU_APP_NAME> -i <DOCKER_IMAGE>" >&2

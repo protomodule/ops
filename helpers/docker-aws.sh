@@ -9,6 +9,21 @@ APPLICATION=
 ENVIRONMENT=
 SYSTEM=
 
+command -v aws >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}AWS CLI is not installed.$NC";
+  exit 1
+}
+
+command -v jq >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}jq CLI is not installed.$NC";
+  exit 1
+}
+
+command -v git >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}git is not installed.$NC";
+  exit 1
+}
+
 # Help
 usage () {
     echo "usage: ./docker-aws.sh -a <APPLICATION> -e <ENVIRONMENT> -s <SYSTEM>" >&2
@@ -28,6 +43,7 @@ done
 
 main () {
   # Checks
+  if [ -z $AWS_DEFAULT_REGION ]; then echo -e "🛑   ${ER}AWS_DEFAULT_REGION${NC} is missing"; exit 1; fi
   if [ -z $AWS_ACCESS_KEY_ID ]; then echo -e "🛑   ${ER}AWS_ACCESS_KEY_ID${NC} is missing"; exit 1; fi
   if [ -z $AWS_SECRET_ACCESS_KEY ]; then echo -e "🛑   ${ER}AWS_SECRET_ACCESS_KEY${NC} is not specified"; exit 1; fi
   if [ -z $APPLICATION ]; then echo -e "🛑   No ${ER}APPLICATION${NC} specified"; exit 1; fi

@@ -7,6 +7,16 @@ WA='\033[0;33m\033[1m' # Warning
 NC='\033[0m' # No Color
 
 # Initial checks
+command -v git >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}git is not installed.$NC";
+  exit 1
+}
+
+command -v npx >/dev/null 2>&1 || {
+  echo -e "💥  ${WA}Node.js / NPM / npx is not installed.$NC";
+  exit 1
+}
+
 if [ ! -d ".git" ]; then
   echo -e "💥  ${WA}This is not a git repository.$NC Please run inside root directory of a repository."
   exit 1
