@@ -42,6 +42,7 @@ main () {
 
   echo "🕖  Checking version periodically"
   START=$(date +%s)
+  LAST_VERSION=
   while [[ $(($(date +%s) - $START)) -lt $WATCH_TIMEOUT ]]
   do
     CURRENT_VERSION=$(curl -s $WATCH_URL)
@@ -58,7 +59,12 @@ main () {
         exit 0
       fi
 
-      echo "🔃 [$(date -u +"%Y-%m-%dT%H:%M:%SZ") / N°$COUNT]: Current version --> \"$CURRENT_VERSION\""
+      if [ "$LAST_VERSION" == "" ]; then
+        echo -e "🏷   Current version: $WA$CURRENT_VERSION$NC --> Expected version: $HL$WATCH_VERSION$NC"
+      else
+        echo "🔃  [$(date -u +"%Y-%m-%dT%H:%M:%SZ") / N°$COUNT]: No change"
+      fi
+      LAST_VERSION=$CURRENT_VERSION
     fi
 
     COUNT=$(($COUNT + 1))
