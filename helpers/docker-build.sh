@@ -6,6 +6,7 @@ HL='\033[0;34m\033[1m' # Highlight
 NC='\033[0m' # No Color
 REPOSITORY=${@: -1}
 DOCKER_FILE=Dockerfile
+BUILD_ARGS=
 
 command -v git >/dev/null 2>&1 || {
   echo -e "💥  ${WA}git is not installed.$NC";
@@ -24,10 +25,11 @@ usage () {
     echo "Generate a docker image and upload it to specified repository." >&2
 }
 
-while getopts "hf:" flag; do
+while getopts "hf:a:" flag; do
     case "${flag}" in
         h) usage; exit 0;;
         f) echo -e "🗃   Using dockerfile $HL${OPTARG}$NC" && DOCKER_FILE=$OPTARG;;
+        a) echo -e "⭐️   Using build arguments $HL${OPTARG}$NC" && BUILD_ARGS=$OPTARG;;
         *) usage; exit 0;;
     esac
 done
@@ -52,7 +54,7 @@ main () {
     echo -e "Docker tag:                       $HL$DOCKER_TAG$NC"
   fi
 
-  docker build -f $DOCKER_FILE -t $REPOSITORY:$LATEST_TAG .
+  docker build -f $DOCKER_FILE -t $REPOSITORY:$LATEST_TAG $BUILD_ARGS .
   docker push $REPOSITORY:$LATEST_TAG
 
   if [ -n "$DOCKER_TAG" ] && [ "$LATEST_TAG" != "$DOCKER_TAG" ]; then
