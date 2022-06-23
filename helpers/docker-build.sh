@@ -29,7 +29,7 @@ while getopts "hf:a:" flag; do
     case "${flag}" in
         h) usage; exit 0;;
         f) echo -e "🗃   Using dockerfile $HL${OPTARG}$NC" && DOCKER_FILE=$OPTARG;;
-        a) echo -e "⭐️   Using build arguments $HL${OPTARG}$NC" && BUILD_ARGS=$OPTARG;;
+        a) echo -e "⭐️  Using build arguments $HL${OPTARG}$NC" && BUILD_ARGS=$OPTARG;;
         *) usage; exit 0;;
     esac
 done
@@ -52,6 +52,9 @@ main () {
   echo -e "Latest tag:                       $HL$LATEST_TAG$NC"
   if [ -n "$DOCKER_TAG" ] && [ "$LATEST_TAG" != "$DOCKER_TAG" ]; then
     echo -e "Docker tag:                       $HL$DOCKER_TAG$NC"
+  fi
+  if [ -n "$BUILD_ARGS" ]; then
+    echo -e "Using build arguments:            $HL$BUILD_ARGS$NC"
   fi
 
   docker build -f $DOCKER_FILE -t $REPOSITORY:$LATEST_TAG $BUILD_ARGS .
