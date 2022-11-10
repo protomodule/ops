@@ -1,0 +1,33 @@
+# ---- 1. build stage ----
+FROM node:18-alpine AS builder
+RUN apk add curl git bash subversion
+WORKDIR /app
+RUN curl -O https://raw.githubusercontent.com/protomodule/ops/main/templates/nginx/entrypoint.sh && \
+    chmod ugo+x entrypoint.sh && \
+    svn export --force https://github.com/protomodule/ops/trunk/templates/nginx/conf.d nginx/conf.d
+COPY yarn.lock package.json ./
+RUN yarn install
+COPY . ./
+RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -- -j -s version && \
+    source ./version.sh && echo "$VERSION" > __v && \
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-changelog.sh)" -- -x
+RUN yarn run build
+
+# ---- 2. release stage ----
+FROM nginx:stable-alpine
+RUN apk add apache2-utils
+
+COPY --from=builder /app/build              /usr/share/nginx/html
+COPY --from=builder /app/version.json       /usr/share/nginx/html/version
+COPY --from=builder /app/__v                /usr/share/nginx/html/__v
+COPY --from=builder /app/changelog.html     /usr/share/nginx/html/changelog.html
+COPY --from=builder /app/entrypoint.sh      /
+
+# Nginx config
+RUN rm -rf /etc/nginx/conf.d
+COPY --from=builder /app/nginx/             /etc/nginx
+
+WORKDIR /usr/share/nginx/html
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

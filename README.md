@@ -14,6 +14,21 @@ not required
 $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -- -j version
 ```
 
+## Project setup
+
+This repo also contains templates for setting up a new dockerized project. All projects are containerized for deployment. A `Dockerfile` is copied, stored and modified in each project repo.
+
+## Initialize web/frontend projects
+
+Download templates by running:
+
+```
+curl -o Dockerfile https://raw.githubusercontent.com/protomodule/ops/main/templates/docker/Dockerfile.web
+curl -o .dockerignore https://raw.githubusercontent.com/protomodule/ops/main/templates/docker/dockerignore.web
+```
+
+The newly added files should be checked into source control. Feel free to modify the files as needed.
+
 ## License
 
 This project is licensed under the terms of the MIT license. See the [LICENSE](LICENSE) file.
