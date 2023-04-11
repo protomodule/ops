@@ -29,6 +29,17 @@ curl -o .dockerignore https://raw.githubusercontent.com/protomodule/ops/main/tem
 
 The newly added files should be checked into source control. Feel free to modify the files as needed.
 
+## Initialize backend/NodeJS projects
+
+Download templates by running:
+
+```
+curl -o Dockerfile https://raw.githubusercontent.com/protomodule/ops/main/templates/docker/Dockerfile.nodejs
+curl -o .dockerignore https://raw.githubusercontent.com/protomodule/ops/main/templates/docker/dockerignore.nodejs
+```
+
+The newly added files should be checked into source control. Feel free to modify the files as needed.
+
 ## License
 
 This project is licensed under the terms of the MIT license. See the [LICENSE](LICENSE) file.
