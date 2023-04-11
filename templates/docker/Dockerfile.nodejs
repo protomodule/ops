@@ -1,6 +1,6 @@
 # ---- 1. build stage ----
 FROM node:18-alpine AS builder
-RUN apk add git jq curl bash subversion
+RUN apk add git jq curl bash openssl1.1-compat
 WORKDIR /app
 
 # Install dependencies
@@ -10,8 +10,10 @@ RUN yarn install --frozen-lockfile
 # Build source code
 COPY . .
 RUN /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -- -j -s version && \
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-changelog.sh)" -- -x
-RUN yarn run build
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-changelog.sh)" -- -x && \
+    # Uncomment the line below if you are also generating prisma client
+    # yarn prisma:generate && \
+    yarn run build
 
 # Only install production dependencies
 RUN rm -rf node_modules && \
@@ -19,11 +21,13 @@ RUN rm -rf node_modules && \
 
 # ---- 2. release stage ----
 FROM node:18-alpine
-RUN npm install -g npm
+RUN npm install -g npm && \
+    apk add --update --no-cache openssl1.1-compat
 WORKDIR /app
 
 COPY --from=builder /app/node_modules   ./node_modules
 COPY --from=builder /app/dist           ./dist
+# Uncomment the line below to copy prisma folder
 # COPY --from=builder /app/prisma         ./prisma
 COPY --from=builder \
     /app/version.json \
