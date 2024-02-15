@@ -7,6 +7,9 @@ NC='\033[0m' # No Color
 REPOSITORY=${@: -1}
 DOCKER_FILE=Dockerfile
 BUILD_ARGS=
+DOCKER_LOGIN_USERNAME=${DOCKER_LOGIN_USERNAME:-_json_key}
+DOCKER_LOGIN_PASSWORD=${DOCKER_LOGIN_PASSWORD}
+DOCKER_LOGIN_REGISTRY=${DOCKER_LOGIN_REGISTRY:-https://eu.gcr.io}
 
 command -v git >/dev/null 2>&1 || {
   echo -e "💥  ${WA}git is not installed.$NC";
@@ -56,8 +59,21 @@ main () {
   if [ -n "$BUILD_ARGS" ]; then
     echo -e "Using build arguments:            $HL$BUILD_ARGS$NC"
   fi
+  if [ "$DOCKER_LOGIN_PASSWORD" != "" ]; then
+    echo ""
+    echo -e "🔑  Logging in to Docker Registry $HL$DOCKER_LOGIN_REGISTRY$NC"
+    echo "$DOCKER_LOGIN_PASSWORD" | docker login -u "${DOCKER_LOGIN_USERNAME}" --password-stdin ${DOCKER_LOGIN_REGISTRY}
+  fi
 
-  docker build -f $DOCKER_FILE -t $REPOSITORY:$LATEST_TAG $BUILD_ARGS .
+  exit 1
+
+  docker build \
+    -f $DOCKER_FILE \
+    -t $REPOSITORY:$LATEST_TAG \
+    --label "org.opencontainers.image.created=$(date -Iseconds)" \
+    --label "org.opencontainers.image.revision=${SHORT}" \
+    --label "org.opencontainers.image.version=${DOCKER_TAG:-LATEST_TAG}" \
+    $BUILD_ARGS .
   docker push $REPOSITORY:$LATEST_TAG
 
   if [ -n "$DOCKER_TAG" ] && [ "$LATEST_TAG" != "$DOCKER_TAG" ]; then
