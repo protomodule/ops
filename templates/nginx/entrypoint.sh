@@ -35,6 +35,11 @@ else
   sed -i "s/$MARKER/$CONFIG/g" "/etc/nginx/conf.d/default.conf"
 fi
 
+# Grab environment from infisical, first check if it is installed and if token is set otherwise skip
+if [ -x "$(command -v infisical)" ] && [ -n "$INFISICAL_TOKEN" ]; then
+  eval "$(infisical export --format=dotenv-export)"
+fi
+
 # Prepare public environment variables when NGINX_ENVJS_ENABLED is set to "yes"
 ## By default read all environment variables and write variables with prefix REACT_APP_
 ## to output file in JS notation (env.js) assigning all varibles into 'window.env'.
@@ -49,7 +54,7 @@ if [ "$NGINX_ENVJS_ENABLED" = "yes" ]; then
   rm -rf $NGINX_ENVJS_FILE
   touch $NGINX_ENVJS_FILE
 
-  # Add assignment 
+  # Add assignment
   echo "$NGINX_ENVJS_TARGET = {" >> $NGINX_ENVJS_FILE
 
   # Read each line in environment
@@ -60,7 +65,7 @@ if [ "$NGINX_ENVJS_ENABLED" = "yes" ]; then
       varname=$(printf '%s\n' "$line" | sed -e 's/=.*//')
       varvalue=$(printf '%s\n' "$line" | sed -e 's/^[^=]*=//')
     fi
-    
+
     # Append configuration property to JS file
     echo "  $varname: \"$varvalue\"," >> $NGINX_ENVJS_FILE
   done
