@@ -57,7 +57,13 @@ main () {
     echo -e "Using build arguments:            $HL$BUILD_ARGS$NC"
   fi
 
-  docker build -f $DOCKER_FILE -t $REPOSITORY:$LATEST_TAG $BUILD_ARGS .
+  docker build \
+    -f $DOCKER_FILE \
+    -t $REPOSITORY:$LATEST_TAG \
+    --label "org.opencontainers.image.created=$(date -Iseconds)" \
+    --label "org.opencontainers.image.revision=${SHORT}" \
+    --label "org.opencontainers.image.version=${DOCKER_TAG:-LATEST_TAG}" \
+    $BUILD_ARGS .
   docker push $REPOSITORY:$LATEST_TAG
 
   if [ -n "$DOCKER_TAG" ] && [ "$LATEST_TAG" != "$DOCKER_TAG" ]; then
