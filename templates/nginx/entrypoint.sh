@@ -35,9 +35,9 @@ else
   sed -i "s/$MARKER/$CONFIG/g" "/etc/nginx/conf.d/default.conf"
 fi
 
-# Grab environment from infisical, first check if it is installed and if token is set otherwise skip
-if [ -x "$(command -v infisical)" ] && [ -n "$INFISICAL_TOKEN" ]; then
-  eval "$(infisical export --format=dotenv-export)"
+# Grab environment from infisical, first check if it is installed and if enabled is set otherwise skip
+if [ -x "$(command -v infisical)" ] && [ "$INFISICAL_ENABLED" = "yes" ]; then
+  eval "$(infisical export --env=$ENVIRONMENT --path=$INFISICAL_PATH --format=dotenv-export)"
 fi
 
 # Prepare public environment variables when NGINX_ENVJS_ENABLED is set to "yes"
