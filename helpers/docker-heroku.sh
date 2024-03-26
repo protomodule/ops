@@ -67,7 +67,7 @@ main () {
   echo -e "To Heroku Dyno:                   $HL$HEROKU_DYNO$NC"
   echo ""
 
-  echo -e "🐳  Pulling $HL${HEROKU_DYNO}$NC image from registry"
+  echo -e "🐳  Pulling $HL${DEPLOY_TAG}$NC image from registry"
   docker pull $DOCKER_IMAGE:$DEPLOY_TAG
 
   echo -e "🐳  Pushing $HL${HEROKU_DYNO}$NC image to Heroku"
@@ -81,7 +81,7 @@ main () {
     echo -e "🥷  ${ER}Procfile${NC} detected. Setting up other processes.";
 
     # Iterate over processes in Procfile except the explicitly specified dyno
-    grep -v "^$HEROKU_DYNO:" Procfile | cut -d':' -f 1 | while read PROC_NAME; do
+    while read PROC_NAME; do
 
       # Tag and push the image to Heroku
       echo -e "🐳  Pushing $HL${PROC_NAME}$NC image to Heroku"
@@ -90,7 +90,9 @@ main () {
 
       # Add to process list for container release
       HEROKU_PROCESSES="${HEROKU_PROCESSES} $PROC_NAME"
-    done
+
+    # Input for while read loop from Procfile (excluding the explicitly specified dyno)
+    done < <(grep -v "^$HEROKU_DYNO:" Procfile | cut -d':' -f 1)
   fi
 
   echo -e "🚀  Releasing new version for $HL$HEROKU_DYNO$HEROKU_PROCESSES$NC"
