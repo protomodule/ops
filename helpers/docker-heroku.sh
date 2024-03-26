@@ -67,16 +67,34 @@ main () {
   echo -e "To Heroku Dyno:                   $HL$HEROKU_DYNO$NC"
   echo ""
 
-  echo "🐳  Pulling image from registry"
+  echo -e "🐳  Pulling $HL${HEROKU_DYNO}$NC image from registry"
   docker pull $DOCKER_IMAGE:$DEPLOY_TAG
 
-  echo "🐳  Pushing image to Heroku"
+  echo -e "🐳  Pushing $HL${HEROKU_DYNO}$NC image to Heroku"
   docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
   docker tag $DOCKER_IMAGE:$DEPLOY_TAG registry.heroku.com/$HEROKU_APP_NAME/$HEROKU_DYNO
   docker push registry.heroku.com/$HEROKU_APP_NAME/$HEROKU_DYNO
 
-  echo "🚀  Releasing new version"
-  heroku container:release -a $HEROKU_APP_NAME $HEROKU_DYNO
+  # Check if Procfile exists
+  HEROKU_PROCESSES=""
+  if [ -f "Procfile" ]; then
+    echo "🥷  ${ER}Procfile${NC} detected. Setting up other processes.";
+
+    # Iterate over processes in Procfile except the explicitly specified dyno
+    grep -v "^$HEROKU_DYNO:" Procfile | cut -d':' -f 1 | while read PROC_NAME; do
+
+      # Tag and push the image to Heroku
+      echo -e "🐳  Pushing $HL${PROC_NAME}$NC image to Heroku"
+      docker tag $DOCKER_IMAGE:$DEPLOY_TAG registry.heroku.com/$HEROKU_APP_NAME/$PROC_NAME
+      docker push registry.heroku.com/$HEROKU_APP_NAME/$PROC_NAME
+
+      # Add to process list for container release
+      HEROKU_PROCESSES="${HEROKU_PROCESSES} $PROC_NAME"
+    done
+  fi
+
+  echo -e "🚀  Releasing new version"
+  heroku container:release -a $HEROKU_APP_NAME $HEROKU_DYNO $HEROKU_PROCESSES
 
   echo ""
   echo "👋  Done & Bye"
