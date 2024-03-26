@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env sh
+
 #  _    _                _          
 # | |  | |              | |         
 # | |__| | ___ _ __ ___ | | ___   _ 
 # |  __  |/ _ \ '__/ _ \| |/ / | | |
 # | |  | |  __/ | | (_) |   <| |_| |
 # |_|  |_|\___|_|  \___/|_|\_\\__,_|
+#
 #      E N T R Y P O I N T
 
 # This script is used as entrypoint for containers running on Heroku.
