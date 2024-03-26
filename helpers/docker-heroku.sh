@@ -78,7 +78,7 @@ main () {
   # Check if Procfile exists
   HEROKU_PROCESSES=""
   if [ -f "Procfile" ]; then
-    echo "🥷  ${ER}Procfile${NC} detected. Setting up other processes.";
+    echo -e "🥷  ${ER}Procfile${NC} detected. Setting up other processes.";
 
     # Iterate over processes in Procfile except the explicitly specified dyno
     grep -v "^$HEROKU_DYNO:" Procfile | cut -d':' -f 1 | while read PROC_NAME; do
@@ -93,8 +93,8 @@ main () {
     done
   fi
 
-  echo -e "🚀  Releasing new version"
-  heroku container:release -a $HEROKU_APP_NAME $HEROKU_DYNO $HEROKU_PROCESSES
+  echo -e "🚀  Releasing new version for $HL$HEROKU_DYNO$HEROKU_PROCESSES$NC"
+  heroku container:release -a $HEROKU_APP_NAME $HEROKU_DYNO$HEROKU_PROCESSES
 
   echo ""
   echo "👋  Done & Bye"
