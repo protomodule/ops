@@ -29,7 +29,7 @@ if [ -z "$@" ]; then
   echo "🐳  Using process $HL${PROC_NAME}$NC from Procfile"
 
   # Get the command for the process type from the Procfile
-  PROC_CMD=$(grep "^$PROC_NAME:" Procfile | cut -d':' -f 2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -d '\n')
+  PROC_CMD=$(grep "^$PROC_NAME:" Procfile | sed 's/:/|/' | cut -d'|' -f 2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -d '\n')
   if [ -z "$PROC_CMD" ]; then echo -e "💥  No command for ${WA}$PROC_NAME$NC found. Exiting now!"; exit 1; fi
 
   # Run the command
