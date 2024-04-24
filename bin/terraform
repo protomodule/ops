@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+
+#    _______                   __                     
+#   |__   __|                 / _|                    
+#      | | ___ _ __ _ __ __ _| |_ ___  _ __ _ __ ___  
+#      | |/ _ \ '__| '__/ _` |  _/ _ \| '__| '_ ` _ \ 
+#      | |  __/ |  | | | (_| | || (_) | |  | | | | | |
+#      |_|\___|_|  |_|  \__,_|_| \___/|_|  |_| |_| |_|
+#                                                     
+#           W R A P P E R   f o r   D o c k e r
+
+# Input parameters
+TF_APPLICATION=${1:-unspecified}
+TF_PARAMS=${@:2}
+TF_CMD=${2:-}
+
+# Prepare shell for script execution
+set -Eeo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+[[ "$0" != "$BASH_SOURCE" ]] && EXIT=return || EXIT=exit
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+  # script cleanup here
+}
+
+setup_colors() {
+  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
+    NOFORMAT='\033[0m' RED='\033[0;31m\033[1m' GREEN='\033[0;32m\033[1m' ORANGE='\033[0;33m\033[1m' BLUE='\033[0;34m\033[1m' PURPLE='\033[0;35m\033[1m' CYAN='\033[0;36m\033[1m' YELLOW='\033[1;33m\033[1m'
+  else
+    NOFORMAT='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW=''
+  fi
+}
+
+msg() {
+  if ! [[ "$TF_CMD" == "output" ]]; then
+    echo >&2 -e "${1-}"
+  fi
+}
+
+setup_colors
+
+# Check if output command is used and if it has enough parameters - if not, print a hint
+if [[ "$TF_CMD" == "output" && "$#" -lt 3 ]]; then
+  >&2 echo -e "🔐 To access sensitive information run separate commands: $PURPLE./terraform ${TF_APPLICATION} output -raw YOUR_SECRET_OUTPUT_VAR$NOFORMAT"
+  >&2 echo ""
+fi
+
+# Load names of environment variables for secrets from file
+IFS=$'\n' SECRETS=($(cat .tf_envs))
+IFS=$'\n' DIRS=($(cat .tf_dirs))
+
+# Input validation
+if [[ -z $CUSTOMER ]]; then
+  msg "🛑   Please specify ${GREEN}CUSTOMER$NOFORMAT as an environment variable"
+  $EXIT 1
+fi
+
+if [[ -z $TF_APPLICATION || "$TF_APPLICATION" == "unspecified" ]]; then
+  msg "🛑   Please specify the Terraform project to run: $GREEN./terraform <PROJECT> plan ...$NOFORMAT"
+  $EXIT 1
+fi
+
+# Check if application directory exists
+if [[ ! -d $(pwd)/applications/$TF_APPLICATION ]]; then
+  msg "🛑   Application $RED$TF_APPLICATION$NOFORMAT not found"
+  $EXIT 1
+fi
+
+# Setup secrets if command is "setup"
+if [[ "$TF_CMD" == "setup" ]]; then
+  msg "🧰  Dynamically running setup script"
+  msg "    Downloading from GitHub ..."
+  msg ""
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/setup)"
+  $EXIT 0
+fi
+
+# Try loading credentials from keychain
+for secret in "${SECRETS[@]}"
+do
+  # Try loading AWS credentials from keychain
+  if [[ -z ${!secret} ]] && [[ "$OSTYPE" == "darwin"* ]]; then
+    msg "🔐   Trying to retrieve $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from keychain"
+    declare -x $secret="$(security find-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -w 2> /dev/null || true)"
+  fi
+
+  # Fail if secret is still not set
+  if [[ -z ${!secret} ]]; then
+    msg "🛑   $RED$(tput bold)${secret}$NOFORMAT$(tput sgr0) for not found"
+    $EXIT 1
+  fi
+done
+
+# Wrapper function to run Terraform in Docker
+terraform() {
+  # Construct a string with all environment secrets
+  env_string=""
+  for item in "${SECRETS[@]}"; do
+      env_string+=" -e $item"
+  done
+
+  # Construct a string with all dirs unexpanded
+  dir_string=""
+  for item in "${DIRS[@]}"; do
+      dir_string+=" -v \$(pwd)/$item"
+  done
+
+  # Run Terraform in Docker
+  RUN="docker run --rm \
+    $dir_string \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -w /workspace \
+    -e TF_VAR_application=$(echo $TF_APPLICATION | tr '[:upper:]' '[:lower:]') \
+    $env_string \
+    -it \
+    hashicorp/terraform:${TF_VERSION:-latest} $@ 2>&1 | tee \"logs/$TF_APPLICATION-$(date '+%Y-%m-%d_%H-%M-%S')-${TF_CMD}.log\""
+  eval $RUN
+}
+
+# Check in which environment we are running
+ENVIRONMENT="$(terraform workspace show)"
+
+msg "🐳   Running Terraform in Docker ..."
+msg "🗂    Running in workspace ${BLUE}$ENVIRONMENT${NOFORMAT}"
+
+# Run Terraform with given parameters
+terraform $TF_PARAMS
+
+msg ""
+msg "🏁   Done"
