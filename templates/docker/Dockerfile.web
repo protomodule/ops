@@ -1,6 +1,16 @@
 # ---- 1. build stage ----
 FROM node:20 AS builder
-RUN apt-get update && apt-get install -y git jq curl bash
+RUN apt-get update && apt-get install -y \
+    # Tools for pipeline
+    git jq curl bash \
+    # Tools for infisical setup
+    python3 make g++ curl git bash openssl sudo
+
+# Install infisical-cli
+# https://infisical.com/docs/cli/overview
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash && \
+    sudo apt-get update && sudo apt-get install -y infisical
+
 WORKDIR /app
 RUN curl -O https://raw.githubusercontent.com/protomodule/ops/main/templates/nginx/entrypoint.sh && \
     chmod ugo+x entrypoint.sh && \
@@ -20,6 +30,7 @@ RUN yarn run build
 FROM nginx:stable-alpine
 RUN apk add apache2-utils
 
+COPY --from=builder /usr/bin/infisical      /usr/bin/infisical
 COPY --from=builder /app/build              /usr/share/nginx/html
 COPY --from=builder /app/version.json       /usr/share/nginx/html/version
 COPY --from=builder /app/__v                /usr/share/nginx/html/__v
