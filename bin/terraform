@@ -106,6 +106,7 @@ terraform() {
   done
 
   # Run Terraform in Docker
+  mkdir -p logs
   RUN="docker run --rm \
     $dir_string \
     -v /var/run/docker.sock:/var/run/docker.sock \
