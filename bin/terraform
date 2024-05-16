@@ -77,8 +77,8 @@ fi
 
 # Setup SSH keys if command is "keygen"
 if [[ "$TF_CMD" == "keygen" ]]; then
-  msg "🔑  Dynamically running keygen script"
-  msg "    Downloading from GitHub ..."
+  msg "🔑   Dynamically running keygen script"
+  msg "     Downloading from GitHub ..."
   msg ""
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/keygen)" -- $1 ${@:3}
   $EXIT 0

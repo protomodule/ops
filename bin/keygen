@@ -45,7 +45,7 @@ APP_NAME="${APP}-${2:-"default"}"
 KEY_TARGET="$APP_PATH/keys"
 KEY_FILE="$KEY_TARGET/$APP_NAME-keypair"
 
-msg "🙋  Hello $HL$APP$NC"
+msg "🙋   Hello $HL$APP$NC"
 msg ""
 
 # ---> Create app path
