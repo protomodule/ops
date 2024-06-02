@@ -44,9 +44,15 @@ setup_colors
 # Load names of environment variables for secrets from file
 IFS=$'\n' SECRETS=($(cat .tf_envs))
 
+# Try loading customer from .tf_customer file if it exists
+if [[ -z $CUSTOMER && -f "$(pwd)/.tf_customer" ]]; then
+  export CUSTOMER=`cat "$(pwd)/.tf_customer"`
+  msg "📂   Read customer $GREEN$CUSTOMER$NOFORMAT from local configuration"
+fi
+
 # Input validation
 if [[ -z $CUSTOMER ]]; then
-  msg "🛑   Please specify ${GREEN}CUSTOMER$NOFORMAT as an environment variable"
+  msg "🛑   Please specify ${GREEN}CUSTOMER$NOFORMAT as an environment variable or in ${GREEN}.tf_customer$NOFORMAT file"
   $EXIT 1
 fi
 

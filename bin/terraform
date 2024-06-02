@@ -49,9 +49,15 @@ fi
 IFS=$'\n' SECRETS=($(cat .tf_envs))
 IFS=$'\n' DIRS=($(cat .tf_dirs))
 
+# Try loading customer from .tf_customer file if it exists
+if [[ -z $CUSTOMER && -f "$(pwd)/.tf_customer" ]]; then
+  export CUSTOMER=`cat "$(pwd)/.tf_customer"`
+  msg "📂   Read customer $GREEN$CUSTOMER$NOFORMAT from local configuration"
+fi
+
 # Input validation
 if [[ -z $CUSTOMER ]]; then
-  msg "🛑   Please specify ${GREEN}CUSTOMER$NOFORMAT as an environment variable"
+  msg "🛑   Please specify ${GREEN}CUSTOMER$NOFORMAT as an environment variable or in ${GREEN}.tf_customer$NOFORMAT file"
   $EXIT 1
 fi
 
@@ -68,8 +74,8 @@ fi
 
 # Setup secrets if command is "setup"
 if [[ "$TF_CMD" == "setup" ]]; then
-  msg "🧰  Dynamically running setup script"
-  msg "    Downloading from GitHub ..."
+  msg "🧰   Dynamically running setup script"
+  msg "     Downloading from GitHub ..."
   msg ""
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/setup)"
   $EXIT 0
