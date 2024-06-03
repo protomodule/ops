@@ -106,6 +106,15 @@ do
   fi
 done
 
+# Connect to instance with SSH
+if [[ "$TF_CMD" == "connect" ]]; then
+  msg "💲   Connect to EC2 instance"
+  msg "     Downloading from GitHub ..."
+  msg ""
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/connect)" -- $1 ${@:3}
+  $EXIT 0
+fi
+
 # Wrapper function to run Terraform in Docker
 terraform() {
   # Construct a string with all environment secrets
