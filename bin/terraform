@@ -136,6 +136,7 @@ terraform() {
     -v /var/run/docker.sock:/var/run/docker.sock \
     -w /workspace \
     -e TF_VAR_application=$(echo $TF_APPLICATION | tr '[:upper:]' '[:lower:]') \
+    -e TF_DOCKER_WORKING_DIR="$(pwd)" \
     $env_string \
     -it \
     hashicorp/terraform:${TF_VERSION:-latest} $@ 2>&1 | tee \"logs/$TF_APPLICATION-$(date '+%Y-%m-%d_%H-%M-%S')-${TF_CMD}.log\""
