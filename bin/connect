@@ -52,7 +52,7 @@ export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-eu-central-1}
 INSTANCES=$(aws ec2 describe-instances --filters "Name=tag:Application,Values=$TF_APPLICATION" "Name=instance-state-name,Values=running")
 INDEX=0
 while IFS=$"\n" read -r INSTANCE; do
-    INSTANCE_NAMES[$INDEX]="$(echo "$INSTANCE" | jq -r '.Tags | .[] | select(.Key == "Name") | .Value')[$(echo "$INSTANCE" | jq -r '.InstanceId')/$(echo "$INSTANCE" | jq -r '.LaunchTime')]"
+    INSTANCE_NAMES[$INDEX]="$(echo "$INSTANCE" | jq -r '.Tags | .[] | select(.Key == "Name") | .Value')_$(echo "$INSTANCE" | jq -r '.InstanceId')/$(echo "$INSTANCE" | jq -r '.LaunchTime')"
     INSTANCE_ADDRESS[$INDEX]=$(echo "$INSTANCE" | jq -r '.PublicDnsName')
     INDEX=$(($INDEX+1))
 done < <(echo $INSTANCES | jq -c ".Reservations[].Instances[]")
