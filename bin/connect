@@ -82,7 +82,7 @@ msg "📞   Connecting to instance $HL$opt$NC"
 msg ""
 
 docker run --rm -it --platform=linux/amd64 kroniak/ssh-client \
-  ssh-agent bash -c "ssh-add - <<< '$SSH_PRIVATE_KEY' && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER:-admin}@$ADDRESS"
+  ssh-agent bash -c "echo \"$SSH_PRIVATE_KEY\" | tr -d '\r' | ssh-add - && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${SSH_USER:-admin}@$ADDRESS"
 
 msg ""
 msg "👋   Bye"
