@@ -62,7 +62,7 @@ main () {
     -t $REPOSITORY:$LATEST_TAG \
     --label "org.opencontainers.image.created=$(date -Iseconds)" \
     --label "org.opencontainers.image.revision=${SHORT}" \
-    --label "org.opencontainers.image.version=${DOCKER_TAG:-LATEST_TAG}" \
+    --label "org.opencontainers.image.version=${DOCKER_TAG:-$LATEST_TAG}" \
     $BUILD_ARGS .
   docker push $REPOSITORY:$LATEST_TAG
 
