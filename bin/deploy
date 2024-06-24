@@ -90,15 +90,15 @@ if [ -f "${WORKING_DIR}/deployment/.env" ]; then
   echo "" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment" # Ensure newline at end of file
 fi
 
-if [ ! -z "$SWARM_DEPLOYMENT_VARS" ]; then
-  msg "🔧  Writing external deployment variables to .env file..."
-  echo "$SWARM_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
-fi
-
 CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("export \(.key)=\'\(.value|tostring)\'")|.[]')
 if [ ! -z "$CONFIG_DEPLOYMENT_VARS" ]; then
   msg "🔧  Writing config deployment vars to .env file..."
   echo "$CONFIG_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
+fi
+
+if [ ! -z "$SWARM_DEPLOYMENT_VARS" ]; then
+  msg "🔧  Writing external deployment variables to .env file..."
+  echo "$SWARM_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
 fi
 
 # Prepare SSH key
