@@ -84,9 +84,21 @@ git fetch
 source version.sh
 
 # Prepare environment variables
+if [ -f "${WORKING_DIR}/deployment/.env" ]; then
+  msg "🔧  Keeping variables in existing .env file..."
+  cp "${WORKING_DIR}/deployment/.env" "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
+  echo "" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment" # Ensure newline at end of file
+fi
+
 if [ ! -z "$SWARM_DEPLOYMENT_VARS" ]; then
   msg "🔧  Writing external deployment variables to .env file..."
-  echo "$SWARM_DEPLOYMENT_VARS" > "${WORKING_DIR}/deployment/.env"
+  echo "$SWARM_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
+fi
+
+CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("export \(.key)=\'\(.value|tostring)\'")|.[]')
+if [ ! -z "$CONFIG_DEPLOYMENT_VARS" ]; then
+  msg "🔧  Writing config deployment vars to .env file..."
+  echo "$CONFIG_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
 fi
 
 # Prepare SSH key
@@ -124,7 +136,7 @@ docker run --rm \
   -e INFISICAL_PATH=${DEVELOPMENT_INFISICAL_PATH} \
   -e INFISICAL_API_URL=${INFISICAL_API_URL} \
   -e APPLICATION=${APPLICATION_NAME} \
-  -e ENVIRONMENT=development \
+  -e ENVIRONMENT=${ENVIRONMENT:-unspecified} \
   -e SYSTEM=${SYSTEM_NAME} \
   docker:cli sh -c "
     # Check if stack file exists
@@ -172,13 +184,16 @@ docker run --rm \
     fi
 
     # Sourcing environment variables
-    if [ -f "/deployment/.env" ]; then
+    if [ -f "/deployment/.env.tmp_swarm_deployment" ]; then
       echo -e \"🔧  Sourcing deployment variables from ${HL}.env$NC file...\";
       wget -q https://github.com/ko1nksm/shdotenv/releases/latest/download/shdotenv -O /usr/local/bin/shdotenv
       chmod +x /usr/local/bin/shdotenv
-      source <(shdotenv -d node --env /deployment/.env)
+      source <(shdotenv -d node --env /deployment/.env.tmp_swarm_deployment)
     fi
-    
+
+    printenv 
+    exit 1
+
     # Run deployment on remote manager
     echo -e \"🐳  Running stack deploy for $GREEN$SWARM_NAME$NC\"
     echo ""
