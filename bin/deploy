@@ -88,6 +88,8 @@ if [ -f "${WORKING_DIR}/deployment/.env" ]; then
   msg "🔧  Keeping variables in existing .env file..."
   cp "${WORKING_DIR}/deployment/.env" "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
   echo "" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment" # Ensure newline at end of file
+else
+  rm "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
 fi
 
 CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("\(.key)=\(.value|tostring)")|.[]')
