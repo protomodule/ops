@@ -84,18 +84,18 @@ git fetch
 source version.sh
 
 # Prepare environment variables
+CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("\(.key)=\(.value|tostring)")|.[]')
+if [ ! -z "$CONFIG_DEPLOYMENT_VARS" ]; then
+  msg "🔧  Writing config deployment vars to .env file..."
+  echo "$CONFIG_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
+fi
+
 if [ -f "${WORKING_DIR}/deployment/.env" ]; then
   msg "🔧  Keeping variables in existing .env file..."
   cp "${WORKING_DIR}/deployment/.env" "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
   echo "" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment" # Ensure newline at end of file
 else
   rm "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
-fi
-
-CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("\(.key)=\(.value|tostring)")|.[]')
-if [ ! -z "$CONFIG_DEPLOYMENT_VARS" ]; then
-  msg "🔧  Writing config deployment vars to .env file..."
-  echo "$CONFIG_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
 fi
 
 if [ ! -z "$SWARM_DEPLOYMENT_VARS" ]; then
@@ -141,6 +141,9 @@ docker run --rm \
   -e ENVIRONMENT=${ENVIRONMENT:-unspecified} \
   -e SYSTEM=${SYSTEM_NAME} \
   docker:cli sh -c "
+    # Prepare shell
+    set -Eeo pipefail
+
     # Check if stack file exists
     if [ ! -f "/deployment/$SWARM_YAML" ]; then
       echo -e \"🛑  Swarm stack file $RED$SWARM_YAML$NC does not exist\";
@@ -187,9 +190,18 @@ docker run --rm \
 
     # Sourcing environment variables
     if [ -f "/deployment/.env.tmp_swarm_deployment" ]; then
-      echo -e \"🔧  Sourcing deployment variables from ${HL}.env$NC file...\";
+      echo -e \"🔧  Validating & sourcing deployment variables from ${HL}.env$NC file...\";
       wget -q https://github.com/ko1nksm/shdotenv/releases/latest/download/shdotenv -O /usr/local/bin/shdotenv
       chmod +x /usr/local/bin/shdotenv
+
+      # Remove duplicates
+      less /deployment/.env.tmp_swarm_deployment | tac | awk -F "=" '!a[\$1]++' | tac > /deployment/.env.tmp_swarm_deployment.dedup
+      mv /deployment/.env.tmp_swarm_deployment.dedup /deployment/.env.tmp_swarm_deployment
+
+      # Validate env file
+      shdotenv -d node --quiet --env /deployment/.env.tmp_swarm_deployment
+
+      # Source variables into shell
       source <(shdotenv -d node --env /deployment/.env.tmp_swarm_deployment)
     fi
 
