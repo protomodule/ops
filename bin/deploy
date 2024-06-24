@@ -191,9 +191,6 @@ docker run --rm \
       source <(shdotenv -d node --env /deployment/.env.tmp_swarm_deployment)
     fi
 
-    printenv 
-    exit 1
-
     # Run deployment on remote manager
     echo -e \"🐳  Running stack deploy for $GREEN$SWARM_NAME$NC\"
     echo ""
