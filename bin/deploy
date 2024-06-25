@@ -62,6 +62,9 @@ REMOTE_PORT=${REMOTE_PORT:-22}
 SYSTEM_NAME=$(echo $SWARM_CONFIG | jq -r '.system | select (.!=null)')
 SYSTEM_NAME=${SYSTEM_NAME:-web}
 
+SWARM_ENVIRONMENT=$(echo $SWARM_CONFIG | jq -r '.environment | select (.!=null)')
+ENVIRONMENT=${SWARM_ENVIRONMENT:-$ENVIRONMENT}
+
 SWARM_NAME=$(echo $SWARM_CONFIG | jq -r '.swarm_name | select (.!=null)')
 if [ -z "$SWARM_NAME" ]; then msg "🛑  Attribute ${RED}swarm_name$NC not set in swarm config"; exit 1; fi
 
