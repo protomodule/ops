@@ -88,7 +88,7 @@ source version.sh
 
 # Prepare environment variables
 rm -f "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
-CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("\(.key)=\(.value|tostring)")|.[]')
+CONFIG_DEPLOYMENT_VARS=$(echo $SWARM_CONFIG | jq -r $'.deployment_vars | select (.!=null) | to_entries|map("\(.key)=\'\(.value|tostring)\'")|.[]') # Single quotes for values to accept multiline SSH keys
 if [ ! -z "$CONFIG_DEPLOYMENT_VARS" ]; then
   msg "🔧  Writing config deployment vars to .env file..."
   echo "$CONFIG_DEPLOYMENT_VARS" >> "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"
@@ -208,6 +208,13 @@ docker run --rm \
       # Source variables into shell
       source <(shdotenv -d node --env /deployment/.env.tmp_swarm_deployment)
     fi
+
+    # Store environment variables in /run/env to load them into Docker secrets
+    echo -e \"💲  Writing environment variables to ${YELLOW}/run/env$NC ...\";
+    mkdir -p /run/env;
+    env -0 | while IFS='=' read -r -d '' n v; do
+      echo \"\$v\" > \"/run/env/\$n\";
+    done
 
     # Run deployment on remote manager
     echo -e \"🐳  Running stack deploy for $GREEN$SWARM_NAME$NC\"
