@@ -43,7 +43,7 @@ if [ -f "./deployment/.env" ]; then
   exit 99
 fi
 
-REPO=$(git config --get remote.origin.url | sed 's/^.*\@gitlab.com\/\(.*\)\.git$/\1/g')
+REPO=$(git config --get remote.origin.url | sed 's/^.*\@gitlab.com[\/\:]\(.*\)\.git$/\1/g')
 ENVIRONMENT=develop
 ENVIRONMENT_PREFIX=$(echo "$ENVIRONMENT" | tr [:lower:] [:upper:])
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
