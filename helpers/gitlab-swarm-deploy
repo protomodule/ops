@@ -69,4 +69,4 @@ msg "💫  Calling deployment script"
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/deploy)"
 
 msg "🧼  Cleaning up"
-rm "./deployment/.env"
+rm -f "./deployment/.env"
