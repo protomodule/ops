@@ -55,7 +55,7 @@ fi
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
 
 msg "🐙  Retrieving variables from GitLab ..."
-VARIABLES=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables")
+VARIABLES=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables?per_page=100")
 echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS\").value" > ./deployment/.env
 
 # Loading swarm configuration
