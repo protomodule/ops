@@ -44,8 +44,14 @@ if [ -f "./deployment/.env" ]; then
 fi
 
 REPO=$(git config --get remote.origin.url | sed 's/^.*\@gitlab.com[\/\:]\(.*\)\.git$/\1/g')
-ENVIRONMENT=develop
+ENVIRONMENT=${1:-develop}
 ENVIRONMENT_PREFIX=$(echo "$ENVIRONMENT" | tr [:lower:] [:upper:])
+
+# Prevent production or pre-production deployments
+if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]]; then
+  msg "✋  ${RED}ATTENTION: $YELLOW$ENVIRONMENT$NC or near production deployments are only allowed via pipeline!"
+  exit 9
+fi
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
 
 msg "🐙  Retrieving variables from GitLab ..."
