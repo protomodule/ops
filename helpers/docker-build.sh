@@ -6,6 +6,7 @@ HL='\033[0;34m\033[1m' # Highlight
 NC='\033[0m' # No Color
 REPOSITORY=${@: -1}
 DOCKER_FILE=Dockerfile
+DOCKER_PATH="."
 BUILD_ARGS=
 
 command -v git >/dev/null 2>&1 || {
@@ -29,6 +30,7 @@ while getopts "hf:a:" flag; do
     case "${flag}" in
         h) usage; exit 0;;
         f) echo -e "🗃   Using dockerfile $HL${OPTARG}$NC" && DOCKER_FILE=$OPTARG;;
+        p) echo -e "🗂️   Using path $HL${OPTARG}$NC" && DOCKER_PATH=$OPTARG;;
         a) echo -e "⭐️  Using build arguments $HL${OPTARG}$NC" && BUILD_ARGS=$OPTARG;;
         *) usage; exit 0;;
     esac
@@ -63,7 +65,7 @@ main () {
     --label "org.opencontainers.image.created=$(date -Iseconds)" \
     --label "org.opencontainers.image.revision=${SHORT}" \
     --label "org.opencontainers.image.version=${DOCKER_TAG:-$LATEST_TAG}" \
-    $BUILD_ARGS .
+    $BUILD_ARGS $DOCKER_PATH
   docker push $REPOSITORY:$LATEST_TAG
 
   if [ -n "$DOCKER_TAG" ] && [ "$LATEST_TAG" != "$DOCKER_TAG" ]; then
