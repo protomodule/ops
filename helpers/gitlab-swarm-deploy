@@ -33,17 +33,9 @@ msg() {
 
 setup_colors
 
-# Prepare GitLab authentication header
-if [ ! -z "$GITLAB_TOKEN" ]; then
-  GITLAB_AUTH_HEADER="PRIVATE-TOKEN: $GITLAB_TOKEN"
-fi
-
-if [ ! -z "$CI_JOB_TOKEN" ]; then
-  GITLAB_AUTH_HEADER="JOB-TOKEN: $CI_JOB_TOKEN"
-fi
-
-if [ -z "$GITLAB_AUTH_HEADER" ]; then
-  msg "🛑  ${RED}GITLAB_TOKEN$NC nor ${RED}CI_JOB_TOKEN$NC is set as an environment variable!"
+# Validate GitLab authentication
+if [ -z "$GITLAB_TOKEN" ] && [ -z "$CI_JOB_TOKEN" ]; then
+  msg "🛑  ${RED}GITLAB_TOKEN$NC nor ${RED}CI_JOB_TOKEN$NC is not set as an environment variable!"
   exit 98
 fi
 
@@ -63,23 +55,43 @@ if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]]; then
 fi
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
 
-msg "🐙  Retrieving variables from GitLab ..."
-VARIABLES=$(curl -s --header "$GITLAB_AUTH_HEADER" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables?per_page=100")
-echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS\").value" > ./deployment/.env
+# Retrieve variables from GitLab via API
+if [ ! -z "$GITLAB_TOKEN" ]; then
+  msg "🐙  Retrieving variables from GitLab ..."
+  VARIABLES=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables?per_page=100")
+  echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS\").value" > ./deployment/.env
 
-# Loading swarm configuration
-msg "🔧  Parsing Swarm config ..."
-export SWARM_CONFIG=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_SWARM_CONFIG\").value")
-REPOSITORY_BASE=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"REPOSITORY_BASE\").value")
-REPOSITORY_URL=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"REPOSITORY\").value")
+  # Loading swarm configuration
+  REPOSITORY_BASE=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"REPOSITORY_BASE\").value")
+  REPOSITORY_URL=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"REPOSITORY\").value")
+
+  # Loading AWS related variables
+  msg "🔑  Configuring AWS (if necessary) ..."
+  export AWS_ACCESS_KEY_ID=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_ACCESS_KEY_ID\").value")
+  export AWS_DEFAULT_REGION=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_DEFAULT_REGION\").value")
+  export AWS_SECRET_ACCESS_KEY=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_SECRET_ACCESS_KEY\").value")
+  export ECR_REGISTRY=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"ECR_REGISTRY\").value")
+  
+  msg "🔧  Parsing Swarm config ..."
+  export SWARM_CONFIG=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_SWARM_CONFIG\").value")
+fi
+
+# Use local veriables from GitLab
+if [ ! -z "$CI_JOB_TOKEN" ]; then
+  msg "👷  Retrieving variables from deployment vars ..."
+  eval "echo \$${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS" > ./deployment/.env
+
+  msg "🔧  Parsing Swarm config ..."
+  eval export SWARM_CONFIG=\$${ENVIRONMENT_PREFIX}_SWARM_CONFIG
+fi
+
+if [ ! -f ./deployment/.env ]; then
+  msg "💥  Could not generate ${RED}.env$NC file!"
+  exit 97
+fi
+
+# Setting repository
 export REPOSITORY=${REPOSITORY_URL:-$REPOSITORY_BASE}
-
-# Loading AWS related variables
-msg "🔑  Configuring AWS (if necessary) ..."
-export AWS_ACCESS_KEY_ID=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_ACCESS_KEY_ID\").value")
-export AWS_DEFAULT_REGION=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_DEFAULT_REGION\").value")
-export AWS_SECRET_ACCESS_KEY=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"AWS_SECRET_ACCESS_KEY\").value")
-export ECR_REGISTRY=$(echo "$VARIABLES" | jq -r ".[] | select(.key == \"ECR_REGISTRY\").value")
 
 # Run deployment script
 msg "💫  Calling deployment script"
