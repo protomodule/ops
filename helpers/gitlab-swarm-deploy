@@ -34,11 +34,11 @@ msg() {
 setup_colors
 
 # Prepare GitLab authentication header
-if [ !-z "$GITLAB_TOKEN" ]; then
+if [ ! -z "$GITLAB_TOKEN" ]; then
   GITLAB_AUTH_HEADER="PRIVATE-TOKEN: $GITLAB_TOKEN"
 fi
 
-if [ !-z "$CI_JOB_TOKEN" ]; then
+if [ ! -z "$CI_JOB_TOKEN" ]; then
   GITLAB_AUTH_HEADER="JOB-TOKEN: $CI_JOB_TOKEN"
 fi
 
