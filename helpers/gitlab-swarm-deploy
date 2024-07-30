@@ -33,8 +33,17 @@ msg() {
 
 setup_colors
 
-if [ -z "$GITLAB_TOKEN" ]; then
-  msg "🛑  Environment variable ${RED}GITLAB_TOKEN$NC not set!"
+# Prepare GitLab authentication header
+if [ !-z "$GITLAB_TOKEN" ]; then
+  GITLAB_AUTH_HEADER="PRIVATE-TOKEN: $GITLAB_TOKEN"
+fi
+
+if [ !-z "$CI_JOB_TOKEN" ]; then
+  GITLAB_AUTH_HEADER="JOB-TOKEN: $CI_JOB_TOKEN"
+fi
+
+if [ -z "$GITLAB_AUTH_HEADER" ]; then
+  msg "🛑  ${RED}GITLAB_TOKEN$NC nor ${RED}CI_JOB_TOKEN$NC is set as an environment variable!"
   exit 98
 fi
 
@@ -55,7 +64,7 @@ fi
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
 
 msg "🐙  Retrieving variables from GitLab ..."
-VARIABLES=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables?per_page=100")
+VARIABLES=$(curl -s --header "$GITLAB_AUTH_HEADER" "https://gitlab.com/api/v4/projects/$(echo "$REPO" | tr -d '\n' | jq -sRr '@uri')/variables?per_page=100")
 echo "$VARIABLES" | jq -r ".[] | select(.key == \"${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS\").value" > ./deployment/.env
 
 # Loading swarm configuration
