@@ -194,26 +194,21 @@ docker run --rm \
 
     # Sourcing environment variables
     if [ -f "/deployment/.env.tmp_swarm_deployment" ]; then
-      echo -e \"🔧  Validating & sourcing deployment variables from ${HL}.env$NC file...\";
-      wget -q https://github.com/ko1nksm/shdotenv/releases/latest/download/shdotenv -O /usr/local/bin/shdotenv
-      chmod +x /usr/local/bin/shdotenv
-
-      # Remove duplicates
-      less /deployment/.env.tmp_swarm_deployment | tac | awk -F "=" '!a[\$1]++' | tac > /deployment/.env.tmp_swarm_deployment.dedup
-      mv /deployment/.env.tmp_swarm_deployment.dedup /deployment/.env.tmp_swarm_deployment
-
-      # Validate env file
-      shdotenv -d node --quiet --env /deployment/.env.tmp_swarm_deployment
-
-      # Source variables into shell
-      source <(shdotenv -d node --env /deployment/.env.tmp_swarm_deployment)
+      echo -e \"🔧  Sourcing deployment variables from ${HL}.env$NC file...\";
+      set -a; source /deployment/.env.tmp_swarm_deployment; set +a
     fi
 
     # Store environment variables in /run/env to load them into Docker secrets
     echo -e \"💲  Writing environment variables to ${YELLOW}/run/env$NC ...\";
     mkdir -p /run/env;
+    mkdir -p /run/hash;
     env -0 | while IFS='=' read -r -d '' n v; do
       echo \"\$v\" > \"/run/env/\$n\";
+      sha1sum \"/run/env/\$n\" | head -c 7 > \"/run/hash/\${n}\";
+    done
+
+    for filepath in /run/hash/*; do
+      export \$(basename \$filepath)__HASH=\$(cat \$filepath)
     done
 
     # Run deployment on remote manager
