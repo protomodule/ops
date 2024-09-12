@@ -143,6 +143,7 @@ docker run --rm \
   -e INFISICAL_API_URL=${INFISICAL_API_URL} \
   -e APPLICATION=${APPLICATION_NAME} \
   -e ENVIRONMENT=${ENVIRONMENT:-unspecified} \
+  -e ENVIRONMENT_NAME=$(echo ${ENVIRONMENT:0:1} | tr '[:lower:]' '[:upper:]')${ENVIRONMENT:1} \
   -e SYSTEM=${SYSTEM_NAME} \
   docker:cli sh -c "
     # Prepare shell
