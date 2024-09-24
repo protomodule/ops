@@ -31,6 +31,17 @@ msg() {
   echo >&2 -e "${1-}"
 }
 
+has_param() {
+    local term="$1"
+    shift
+    for arg; do
+        if [[ $arg == "$term" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 setup_colors
 
 # Validate GitLab authentication
@@ -49,7 +60,7 @@ ENVIRONMENT=${1:-develop}
 ENVIRONMENT_PREFIX=$(echo "$ENVIRONMENT" | tr [:lower:] [:upper:])
 
 # Prevent production or pre-production deployments
-if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]]; then
+if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]] && ! has_param '-f' "$@"; then
   msg "✋  ${RED}ATTENTION: $YELLOW$ENVIRONMENT$NC or near production deployments are only allowed via pipeline!"
   exit 9
 fi
