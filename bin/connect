@@ -9,8 +9,8 @@
 #        W r a p p e r   f o r   S S H                                       
 
 # Input parameters
-TF_APPLICATION=${1:-unspecified}
-TF_PARAMS=${@:2}
+TF_APPLICATION=${1:-unspecified}          # Terraform project name (same as application directory)
+APPLICATION_NAME=${2:-$TF_APPLICATION}    # Application name (same as resources are tagged with - may differ from directory name)
 
 # Prepare shell for script execution
 set -Eeo pipefail
@@ -49,7 +49,7 @@ fi
 msg "🌍   Checking for instances of ${BLUE}$TF_APPLICATION${NOFORMAT}"
 
 export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-eu-central-1}
-INSTANCES=$(aws ec2 describe-instances --filters "Name=tag:Application,Values=$TF_APPLICATION" "Name=instance-state-name,Values=running")
+INSTANCES=$(aws ec2 describe-instances --filters "Name=tag:Application,Values=$APPLICATION_NAME" "Name=instance-state-name,Values=running")
 INDEX=0
 while IFS=$"\n" read -r INSTANCE; do
     INSTANCE_NAMES[$INDEX]="$(echo "$INSTANCE" | jq -r '.Tags | .[] | select(.Key == "Name") | .Value')_$(echo "$INSTANCE" | jq -r '.InstanceId')"
