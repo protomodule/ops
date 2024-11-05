@@ -7,7 +7,7 @@ NC='\033[0m' # No Color
 REPOSITORY=${@: -1}
 DOCKER_FILE=Dockerfile
 DOCKER_PATH="."
-BUILD_ARGS=
+BUILD_ARGS=${BUILD_ARGS}
 
 command -v git >/dev/null 2>&1 || {
   echo -e "💥  ${WA}git is not installed.$NC";
