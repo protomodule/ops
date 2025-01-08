@@ -90,7 +90,7 @@ fi
 # Use local veriables from GitLab
 if [ ! -z "$CI_JOB_TOKEN" ]; then
   msg "👷  Retrieving variables from deployment vars ..."
-  eval "echo \$${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS" > ./deployment/.env
+  eval "echo \"\$${ENVIRONMENT_PREFIX}_DEPLOYMENT_VARS\"" > ./deployment/.env
 
   msg "🔧  Parsing Swarm config ..."
   eval export SWARM_CONFIG=\$${ENVIRONMENT_PREFIX}_SWARM_CONFIG
