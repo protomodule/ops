@@ -223,7 +223,7 @@ docker run --rm \
     # Run deployment on remote manager
     echo -e \"🐳  Running stack deploy for $GREEN$STACK_NAME$NC\"
     echo ""
-    docker --log-level debug stack deploy --prune --detach=false --resolve-image=always --with-registry-auth -c /deployment/$SWARM_YAML $SWARM_NAME
+    docker --log-level debug stack deploy --prune --detach=false --resolve-image=always --with-registry-auth -c /deployment/$SWARM_YAML $STACK_NAME
 "
 
 # Cleanup
