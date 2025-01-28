@@ -68,6 +68,13 @@ ENVIRONMENT=${SWARM_ENVIRONMENT:-$ENVIRONMENT}
 SWARM_NAME=$(echo $SWARM_CONFIG | jq -r '.swarm_name | select (.!=null)')
 if [ -z "$SWARM_NAME" ]; then msg "🛑  Attribute ${RED}swarm_name$NC not set in swarm config"; exit 1; fi
 
+STACK_NAME=$(echo $SWARM_CONFIG | jq -r '.stack_name | select (.!=null)')
+if [ -z "$STACK_NAME" ]; then
+  STACK_NAME=$SWARM_NAME
+else
+  STACK_NAME=$SWARM_NAME-$STACK_NAME
+fi
+
 # Read YAML file name from swarm configuration and fallback to 'swarm.yml'
 SWARM_YAML=$(echo $SWARM_CONFIG | jq -r '.yaml_file | select (.!=null)')
 SWARM_YAML=${SWARM_YAML:-swarm.yml}
@@ -76,7 +83,8 @@ SWARM_YAML=${2:-$SWARM_YAML}
 # ---> Summary
 msg ""
 msg "App stack:           $HL${WORKING_DIR}/deployment/$SWARM_YAML$NC"
-msg "Swarm stack name:    $HL$SWARM_NAME$NC"
+msg "Swarm name:          $HL$SWARM_NAME$NC"
+msg "Stack name:          $HL$STACK_NAME$NC"
 msg "Remote manager:      $HL${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PORT}$NC"
 msg ""
 
@@ -213,7 +221,7 @@ docker run --rm \
     done
 
     # Run deployment on remote manager
-    echo -e \"🐳  Running stack deploy for $GREEN$SWARM_NAME$NC\"
+    echo -e \"🐳  Running stack deploy for $GREEN$STACK_NAME$NC\"
     echo ""
     docker --log-level debug stack deploy --prune --detach=false --resolve-image=always --with-registry-auth -c /deployment/$SWARM_YAML $SWARM_NAME
 "
