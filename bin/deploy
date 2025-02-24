@@ -51,7 +51,7 @@ has_param() {
 setup_colors
 
 # Set working directory
-WORKING_DIR=${1:-$(pwd)}
+WORKING_DIR=${1:-$(pwd)}; [ -d "$1" ] || WORKING_DIR=$(pwd)
 msg "📂  Working from: $HL$WORKING_DIR$NC"
 
 # Ensure swarm config is set
@@ -89,7 +89,7 @@ fi
 # Read YAML file name from swarm configuration and fallback to 'swarm.yml'
 SWARM_YAML=$(echo $SWARM_CONFIG | jq -r '.yaml_file | select (.!=null)')
 SWARM_YAML=${SWARM_YAML:-swarm.yml}
-SWARM_YAML=${2:-$SWARM_YAML}
+[[ -n $2 && $2 != -* ]] && SWARM_YAML="$2" # Only use second parameter as stack if it is set and does not start with prefix "-"
 
 # ---> Summary
 msg ""

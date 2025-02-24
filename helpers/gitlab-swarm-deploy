@@ -104,7 +104,8 @@ export REPOSITORY=${REPOSITORY_URL:-$REPOSITORY_BASE}
 
 # Run deployment script
 msg "💫  Calling deployment script"
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/bin/deploy)"
+# Pass all argument except first
+curl -fsSL "https://raw.githubusercontent.com/protomodule/ops/main/bin/deploy" | /bin/bash -s -- ${@:2}
 
 msg "🧼  Cleaning up"
 rm -f "./deployment/.env"
