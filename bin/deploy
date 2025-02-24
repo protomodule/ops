@@ -37,6 +37,17 @@ msg() {
   echo >&2 -e "${1-}"
 }
 
+has_param() {
+    local term="$1"
+    shift
+    for arg; do
+        if [[ $arg == "$term" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 setup_colors
 
 # Set working directory
@@ -93,6 +104,13 @@ msg "ℹ️   Preparing version number"
 git fetch
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/protomodule/ops/main/helpers/generate-version.sh)" -- -s version
 source version.sh
+
+# Prevent production or pre-production deployments
+if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]] && ! has_param '-f' "$@"; then
+  msg ""
+  msg "✋  ${RED}ATTENTION: $YELLOW$ENVIRONMENT$NC or near production deployments are only allowed via pipeline!"
+  exit 9
+fi
 
 # Prepare environment variables
 rm -f "${WORKING_DIR}/deployment/.env.tmp_swarm_deployment"

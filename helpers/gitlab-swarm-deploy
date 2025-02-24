@@ -51,19 +51,17 @@ if [ -z "$GITLAB_TOKEN" ] && [ -z "$CI_JOB_TOKEN" ]; then
 fi
 
 if [ -f "./deployment/.env" ]; then
-  msg "🛑  Can not proceed: ${RED}.env file already exists.$NC Aborting!"
-  exit 99
+  if has_param '-d' "$@"; then
+    msg "🗑️   Deployment .env exists: ${RED}deleting existing file ...$NC"
+  else
+    msg "🛑  Can not proceed: ${RED}.env file already exists.$NC Aborting!"
+    exit 99
+  fi
 fi
 
 REPO=$(git config --get remote.origin.url | sed 's/^.*\@gitlab.com[\/\:]\(.*\)\.git$/\1/g')
 ENVIRONMENT=${1:-develop}
 ENVIRONMENT_PREFIX=$(echo "$ENVIRONMENT" | tr [:lower:] [:upper:])
-
-# Prevent production or pre-production deployments
-if [[ "$(echo "$ENVIRONMENT" | tr [:upper:] [:lower:])" =~ "prod" ]] && ! has_param '-f' "$@"; then
-  msg "✋  ${RED}ATTENTION: $YELLOW$ENVIRONMENT$NC or near production deployments are only allowed via pipeline!"
-  exit 9
-fi
 msg "🚀  Deploying $HL$REPO$NC to $YELLOW$ENVIRONMENT$NC environment"
 
 # Retrieve variables from GitLab via API
