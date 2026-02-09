@@ -59,8 +59,8 @@ if [[ "$MODE" == "unsupported" ]]; then
   $EXIT 1
 fi
 
-msg "🔑  Setting up all secrets for $BLUE$(tput bold)$CUSTOMER$NOFORMAT$(tput sgr0) in macOS keychain ..."
-msg "    Press ${RED}Enter$NOFORMAT with an empty input to keep the current item in the keychain"
+msg "🔑  Setting up all secrets for $BLUE$(tput bold)$CUSTOMER$NOFORMAT$(tput sgr0) in $MODE ..."
+msg "    Press ${RED}Enter$NOFORMAT with an empty input to keep the current item"
 
 # Iterate over all secrets
 for secret in "${SECRETS[@]}"
@@ -71,8 +71,12 @@ do
   echo "$secret_value" | sed 's/./*/g'
 
   if [[ ! -z "$secret_value" ]]; then
-    security add-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -U -w "$secret_value"
-    echo -e "✅  Saving $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER to keychain"
+    if [[ $MODE == "pass" ]]; then
+      pass insert --echo -f "Cloud IAC/$CUSTOMER/$secret" <<< "$secret_value" 1> /dev/null
+    else
+      security add-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -U -w "$secret_value"
+    fi
+    echo -e "✅  Saving $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER to $MODE"
   else
     msg "    Skipping $(tput bold)$secret$(tput sgr0)"
   fi
