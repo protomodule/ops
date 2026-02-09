@@ -93,10 +93,24 @@ fi
 # Try loading credentials from keychain
 for secret in "${SECRETS[@]}"
 do
+  # Try loading AWS credentials from pass (if installed and configured)
+  if [[ -z ${!secret} ]] && command -v pass > /dev/null; then
+    msg "🔐   Trying to retrieve $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from pass ..."
+    declare -x $secret="$(pass show "Cloud IAC/$CUSTOMER/$secret" 2> /dev/null | sed -n '1p' || true)"
+    [[ "$TF_CMD" != "output" ]] && printf >&2 '\033[1A\033[2K\r'
+    if [[ -n ${!secret} ]]; then
+      msg "🔐   Retrieved $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from pass"
+    fi
+  fi
+
   # Try loading AWS credentials from keychain
   if [[ -z ${!secret} ]] && [[ "$OSTYPE" == "darwin"* ]]; then
-    msg "🔐   Trying to retrieve $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from keychain"
+    msg "🔐   Trying to retrieve $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from keychain ..."
     declare -x $secret="$(security find-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -w 2> /dev/null || true)"
+    [[ "$TF_CMD" != "output" ]] && printf >&2 '\033[1A\033[2K\r'
+    if [[ -n ${!secret} ]]; then
+      msg "🔐   Retrieved $GREEN$(tput bold)${secret}$NOFORMAT$(tput sgr0) for $CUSTOMER from keychain"
+    fi
   fi
 
   # Fail if secret is still not set

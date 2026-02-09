@@ -47,8 +47,15 @@ fi
 # Load names of environment variables for secrets from file
 IFS=$'\n' SECRETS=($(cat .tf_envs))
 
-if ! [[ "$OSTYPE" == "darwin"* ]]; then
-  msg "🚨  This script is only supported on macOS"
+MODE="unsupported"
+if command -v pass > /dev/null; then
+  MODE="pass"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  MODE="macOS keychain"
+fi
+
+if [[ "$MODE" == "unsupported" ]]; then
+  msg "🚨  This script is only supported with macOS keychain or pass"
   $EXIT 1
 fi
 
@@ -77,9 +84,18 @@ msg "🔎  Checking secrets ..."
 # Iterate over all secrets
 for secret in "${SECRETS[@]}"
 do
-  if [[ -z "$(security find-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -w 2> /dev/null || true)" ]]; then
-    msg "🚨  Secret $(tput bold)$secret$(tput sgr0) is not set"
-    exit 1
+  if [[ $MODE == "pass" ]]; then
+    # Load secret from pass
+    if [[ -z "$(pass show "Cloud IAC/$CUSTOMER/$secret" 2> /dev/null | sed -n '1p' || true)" ]]; then
+      msg "🚨  Secret $(tput bold)$secret$(tput sgr0) is not set"
+      exit 1
+    fi
+  else
+    # Load secret from macOS keychain
+    if [[ -z "$(security find-generic-password -s "$CUSTOMER - Cloud IAC" -a "$secret" -w 2> /dev/null || true)" ]]; then
+      msg "🚨  Secret $(tput bold)$secret$(tput sgr0) is not set"
+      exit 1
+    fi
   fi
 done
 
